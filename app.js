@@ -135,6 +135,8 @@ function textOn(hex) {
   return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#111' : '#fff';
 }
 const dot = c => `<span class="dot" style="background:${esc(c)}"></span>`;
+/* ονόματα: αλλαγή γραμμής μόνο στα κενά, ποτέ μέσα σε λέξη (π.χ. «Υ/Β.ΤΡΑΝΑΚΟΣ») */
+const nm = n => String(n).split(' ').map(t => `<span class="nw">${esc(t)}</span>`).join(' ');
 const longDate = i => { const d = dateOf(i); return WD_LONG[wdOf(i)] + ' ' + d.getUTCDate() + ' ' + MONTHS_GEN[d.getUTCMonth()] + ' ' + S.data.year; };
 function monthSelect(id) { return `<select class="big" id="${id}">` + MONTHS.map((m, i) => `<option value="${i}"${i === S.month ? ' selected' : ''}>${m} ${S.data.year}</option>`).join('') + '</select>'; }
 
@@ -159,10 +161,10 @@ function viewLeave() {
   let det = '';
   if (S.selDay != null && dateOf(S.selDay).getUTCMonth() === m) {
     const i = S.selDay, list = [];
-    d.colleagues.forEach((c, p) => { const code = (d.leave[p][i] || '').trim(); if (code) list.push(`<li>${dot(c.color)}<span>${esc(c.name)}</span><span class="badge" title="${esc(CODE_DESC[norm(code)] || code)}">${esc(code)}</span></li><li style="border:0;padding-top:0;margin-top:-8px;font-size:14px;color:var(--mute);padding-left:34px">${esc(CODE_DESC[norm(code)] || 'Κωδικός: ' + code)}</li>`); });
+    d.colleagues.forEach((c, p) => { const code = (d.leave[p][i] || '').trim(); if (code) list.push(`<li>${dot(c.color)}<span>${nm(c.name)}</span><span class="badge" title="${esc(CODE_DESC[norm(code)] || code)}">${esc(code)}</span></li><li style="border:0;padding-top:0;margin-top:-8px;font-size:14px;color:var(--mute);padding-left:34px">${esc(CODE_DESC[norm(code)] || 'Κωδικός: ' + code)}</li>`); });
     det = `<div class="card"><b>${longDate(i)}</b>${list.length ? '<ul class="list">' + list.join('') + '</ul>' : '<div class="note">Καμία άδεια.</div>'}</div>`;
   }
-  const legend = '<div class="legend">' + d.colleagues.map(c => `<span class="chip">${dot(c.color)}${esc(c.name)}</span>`).join('') + '</div>';
+  const legend = '<div class="legend">' + d.colleagues.map(c => `<span class="chip">${dot(c.color)}<span>${nm(c.name)}</span></span>`).join('') + '</div>';
   return `<div class="nav"><button class="arrow" id="mPrev" ${m === 0 ? 'disabled' : ''} aria-label="Προηγούμενος μήνας">‹</button><div class="title">${MONTHS[m]} ${y}</div><button class="arrow" id="mNext" ${m === 11 ? 'disabled' : ''} aria-label="Επόμενος μήνας">›</button></div>
     ${monthSelect('mSel')}<div class="wk" style="margin-top:10px">${cells}</div>${det}<div class="card"><b>Υπόμνημα</b>${legend}</div>`;
 }
@@ -184,13 +186,13 @@ function viewShifts() {
   for (let k = 0; k < 7; k++) { const i = ws + k, ok = i >= 0 && i < n; days += `<button data-sday="${i}" class="${i === S.selDay ? 'sel' : ''}" ${ok ? '' : 'disabled'}>${WD[k]}<b>${dateOf(i).getUTCDate()}</b></button>`; }
   const i = S.selDay, G = { P:[], A:[], N:[], R:[], L:[], AD:[], X:[], none:[] };
   d.colleagues.forEach((c, p) => { const code = (d.shifts[p][i] || '').trim(); G[groupOf(code)].push({ c, code }); });
-  const item = (x, badge) => `<li>${dot(x.c.color)}<span>${esc(x.c.name)}</span>${badge ? `<span class="badge">${esc(x.code)}</span>` : ''}</li>`;
+  const item = (x, badge) => `<li>${dot(x.c.color)}<span>${nm(x.c.name)}</span>${badge ? `<span class="badge">${esc(x.code)}</span>` : ''}</li>`;
   const grp = (title, arr, badgeFn, always) => (!arr.length && !always) ? '' :
     `<div class="card grp"><h3>${title}</h3>${arr.length ? '<ul class="list">' + arr.map(x => item(x, badgeFn(x))).join('') + '</ul>' : '<div class="none">—</div>'}</div>`;
   return `<div class="nav"><button class="arrow" id="wPrev" ${ws <= 0 ? 'disabled' : ''} aria-label="Προηγούμενη εβδομάδα">‹</button><div class="title" style="font-size:17px">${title}</div><button class="arrow" id="wNext" ${we >= n - 1 ? 'disabled' : ''} aria-label="Επόμενη εβδομάδα">›</button></div>
     <div class="days7">${days}</div><div class="note" style="margin:0 0 4px"><b>${longDate(i)}</b></div>
     ${grp('Πρωί', G.P, () => false, true)}${grp('Απόγευμα', G.A, () => false, true)}${grp('Νύχτα', G.N, () => false, true)}
-    ${grp('Ρεπό', G.R, x => norm(x.code) === 'ΧΡ', true)}${grp('Άδεια', G.L, () => true, true)}${grp('Αδιάθετο', G.AD, () => false, false)}
+    ${grp('Αδιάθετο (Α/Α)', G.AD, () => false, true)}${grp('Ρεπό', G.R, x => norm(x.code) === 'ΧΡ', true)}${grp('Άδεια', G.L, () => true, true)}
     ${grp('Άλλος κωδικός', G.X, () => true, false)}${grp('Χωρίς καταχώριση', G.none, () => false, false)}`;
 }
 function viewNights() {
@@ -198,7 +200,7 @@ function viewNights() {
   const rows = d.colleagues.map((c, p) => {
     const v = src[p].months[m], col = src[p].colors[m];
     const st = col ? `background:${esc(col)};color:${textOn(col)}` : '';
-    return `<li>${dot(c.color)}<span>${esc(c.name)}</span><span class="num-badge" style="${st}">${esc(v)}</span></li>`;
+    return `<li>${dot(c.color)}<span>${nm(c.name)}</span><span class="num-badge" style="${st}">${esc(v)}</span></li>`;
   }).join('');
   return `${monthSelect('mSel')}<div class="seg2"><button id="nN" class="${S.nyx === 'nights' ? 'on' : ''}">Νυχτερινά</button><button id="nP" class="${S.nyx === 'pent' ? 'on' : ''}">Πενθήμερα</button></div>
     <div class="card"><b>${S.nyx === 'nights' ? 'Νυχτερινά' : 'Πενθήμερα'} — ${MONTHS[m]} ${d.year}</b><ul class="list">${rows}</ul></div>
@@ -209,9 +211,9 @@ function viewOwed() {
   const fmt = v => v > 0 ? '+' + v : String(v);
   const rows = d.colleagues.map((c, p) => {
     const o = d.owed[p][m];
-    if (!o.filled) return `<tr><td>${dot(c.color)} ${esc(c.name)}</td><td class="n">—</td><td class="n">—</td></tr>`;
+    if (!o.filled) return `<tr><td><span class="who">${dot(c.color)}<span>${nm(c.name)}</span></span></td><td class="n">—</td><td class="n">—</td></tr>`;
     const cls = o.total > 0 ? 'pos' : (o.total < 0 ? 'neg' : '');
-    return `<tr><td><span style="display:inline-flex;gap:8px;align-items:center">${dot(c.color)}${esc(c.name)}</span></td><td class="n"><span>${esc(o.new)}</span></td><td class="n"><span class="${cls}">${esc(fmt(o.total))}${o.flag ? ' *' : ''}</span></td></tr>`;
+    return `<tr><td><span class="who">${dot(c.color)}<span>${nm(c.name)}</span></span></td><td class="n"><span>${esc(o.new)}</span></td><td class="n"><span class="${cls}">${esc(fmt(o.total))}${o.flag ? ' *' : ''}</span></td></tr>`;
   }).join('');
   return `${monthSelect('mSel')}<div class="card" style="padding:6px 8px"><table class="owed"><thead><tr><th>Συνάδελφος</th><th class="n">Μήνας</th><th class="n">Σύνολο</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="note"><b>Μήνας</b>: νέα οφειλόμενα ρεπό που δημιουργήθηκαν μέσα στον μήνα.<br><b>Σύνολο</b>: όσα οφείλονται στο τέλος του μήνα, αφού αφαιρεθούν τα ΧΡ (+ οφείλει η Υπηρεσία, − δόθηκαν ΧΡ προκαταβολικά).<br>* περίπτωση προς έλεγχο στο Excel · — ο μήνας δεν έχει καταχωρίσεις.</div>`;
