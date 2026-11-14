@@ -186,7 +186,7 @@ function viewShifts() {
   for (let k = 0; k < 7; k++) { const i = ws + k, ok = i >= 0 && i < n; days += `<button data-sday="${i}" class="${i === S.selDay ? 'sel' : ''}" ${ok ? '' : 'disabled'}>${WD[k]}<b>${dateOf(i).getUTCDate()}</b></button>`; }
   const i = S.selDay, G = { P:[], A:[], N:[], R:[], L:[], AD:[], X:[], none:[] };
   d.colleagues.forEach((c, p) => { const code = (d.shifts[p][i] || '').trim(); G[groupOf(code)].push({ c, code }); });
-  const item = (x, badge) => `<li>${dot(x.c.color)}<span>${nm(x.c.name)}</span>${badge ? `<span class="badge">${esc(x.code)}</span>` : ''}</li>`;
+  const item = (x, badge) => `<li><span>${nm(x.c.name)}</span>${badge ? `<span class="badge">${esc(x.code)}</span>` : ''}</li>`;
   const grp = (title, arr, badgeFn, always) => (!arr.length && !always) ? '' :
     `<div class="card grp"><h3>${title}</h3>${arr.length ? '<ul class="list">' + arr.map(x => item(x, badgeFn(x))).join('') + '</ul>' : '<div class="none">—</div>'}</div>`;
   return `<div class="nav"><button class="arrow" id="wPrev" ${ws <= 0 ? 'disabled' : ''} aria-label="Προηγούμενη εβδομάδα">‹</button><div class="title" style="font-size:17px">${title}</div><button class="arrow" id="wNext" ${we >= n - 1 ? 'disabled' : ''} aria-label="Επόμενη εβδομάδα">›</button></div>
@@ -200,7 +200,7 @@ function viewNights() {
   const rows = d.colleagues.map((c, p) => {
     const v = src[p].months[m], col = src[p].colors[m];
     const st = col ? `background:${esc(col)};color:${textOn(col)}` : '';
-    return `<li>${dot(c.color)}<span>${nm(c.name)}</span><span class="num-badge" style="${st}">${esc(v)}</span></li>`;
+    return `<li><span>${nm(c.name)}</span><span class="num-badge" style="${st}">${esc(v)}</span></li>`;
   }).join('');
   return `${monthSelect('mSel')}<div class="seg2"><button id="nN" class="${S.nyx === 'nights' ? 'on' : ''}">Νυχτερινά</button><button id="nP" class="${S.nyx === 'pent' ? 'on' : ''}">Πενθήμερα</button></div>
     <div class="card"><b>${S.nyx === 'nights' ? 'Νυχτερινά' : 'Πενθήμερα'} — ${MONTHS[m]} ${d.year}</b><ul class="list">${rows}</ul></div>
@@ -211,9 +211,9 @@ function viewOwed() {
   const fmt = v => v > 0 ? '+' + v : String(v);
   const rows = d.colleagues.map((c, p) => {
     const o = d.owed[p][m];
-    if (!o.filled) return `<tr><td><span class="who">${dot(c.color)}<span>${nm(c.name)}</span></span></td><td class="n">—</td><td class="n">—</td></tr>`;
+    if (!o.filled) return `<tr><td><span class="who"><span>${nm(c.name)}</span></span></td><td class="n">—</td><td class="n">—</td></tr>`;
     const cls = o.total > 0 ? 'pos' : (o.total < 0 ? 'neg' : '');
-    return `<tr><td><span class="who">${dot(c.color)}<span>${nm(c.name)}</span></span></td><td class="n"><span>${esc(o.new)}</span></td><td class="n"><span class="${cls}">${esc(fmt(o.total))}${o.flag ? ' *' : ''}</span></td></tr>`;
+    return `<tr><td><span class="who"><span>${nm(c.name)}</span></span></td><td class="n"><span>${esc(o.new)}</span></td><td class="n"><span class="${cls}">${esc(fmt(o.total))}${o.flag ? ' *' : ''}</span></td></tr>`;
   }).join('');
   return `${monthSelect('mSel')}<div class="card" style="padding:6px 8px"><table class="owed"><thead><tr><th>Συνάδελφος</th><th class="n">Μήνας</th><th class="n">Σύνολο</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="note"><b>Μήνας</b>: νέα οφειλόμενα ρεπό που δημιουργήθηκαν μέσα στον μήνα.<br><b>Σύνολο</b>: όσα οφείλονται στο τέλος του μήνα, αφού αφαιρεθούν τα ΧΡ (+ οφείλει η Υπηρεσία, − δόθηκαν ΧΡ προκαταβολικά).<br>* περίπτωση προς έλεγχο στο Excel · — ο μήνας δεν έχει καταχωρίσεις.</div>`;
