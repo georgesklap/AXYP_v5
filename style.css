@@ -68,3 +68,13 @@ table.owed td.n span { display:inline-block; min-width:52px; border-radius:8px; 
 .primary:disabled { opacity:.6; }
 .link { background:none; border:0; color:var(--blue); text-decoration:underline; font-size:15px; padding:12px; }
 .offline { background:#FFF4CE; border:1px solid #E8C547; color:#5c4a00; border-radius:12px; padding:8px 12px; font-size:14px; margin-bottom:8px; }
+/* Βάρδιες — συμπαγής εμφάνιση (SHIFTS_LAYOUT = 'compact' στο app.js) */
+.sgrid { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+.srow { display:grid; grid-template-columns:30% 1fr; align-items:center; border:1px solid var(--line); border-radius:14px; background:#fff;
+  min-height:clamp(52px, calc((100vh - 330px) / 6 - 8px), 70px); min-height:clamp(52px, calc((100dvh - 330px) / 6 - 8px), 70px); padding:6px 0; }
+.srow .st { padding:0 8px 0 12px; font-weight:800; font-size:clamp(14px, 4vw, 16px); line-height:1.15; color:var(--blue); border-right:1.5px solid var(--ink); align-self:center; min-height:30px; display:flex; align-items:center; }
+.srow .sn { padding:0 10px 0 12px; min-width:0; }
+.srow .sl { display:flex; align-items:center; gap:8px; font-weight:700; font-size:clamp(14.5px, 4.2vw, 17px); color:#000; padding:3px 0; }
+.srow .sl + .sl { border-top:1px solid var(--soft); }
+.srow .sl.none { color:var(--mute); font-weight:400; }
+.srow .badge { font-size:15px; }

@@ -177,6 +177,8 @@ function groupOf(code) {
   if (c === 'Α/Α' || c === 'Α/Δ') return 'AD';
   return 'X';
 }
+/* Εμφάνιση καρτέλας «Βάρδιες»: 'compact' = νέα (τίτλος αριστερά | ονόματα δεξιά), 'classic' = προηγούμενη. */
+const SHIFTS_LAYOUT = 'compact';
 function viewShifts() {
   const d = S.data, n = d.dayCount;
   const ws = S.weekStart, we = ws + 6;
@@ -187,13 +189,17 @@ function viewShifts() {
   const i = S.selDay, G = { P:[], A:[], N:[], R:[], L:[], AD:[], X:[], none:[] };
   d.colleagues.forEach((c, p) => { const code = (d.shifts[p][i] || '').trim(); G[groupOf(code)].push({ c, code }); });
   const item = (x, badge) => `<li><span>${nm(x.c.name)}</span>${badge ? `<span class="badge">${esc(x.code)}</span>` : ''}</li>`;
-  const grp = (title, arr, badgeFn, always) => (!arr.length && !always) ? '' :
-    `<div class="card grp"><h3>${title}</h3>${arr.length ? '<ul class="list">' + arr.map(x => item(x, badgeFn(x))).join('') + '</ul>' : '<div class="none">—</div>'}</div>`;
+  const grp = SHIFTS_LAYOUT === 'compact'
+    ? (title, arr, badgeFn, always) => (!arr.length && !always) ? '' :
+      `<div class="srow"><div class="st">${title}</div><div class="sn">${arr.length ? arr.map(x => { const b = badgeFn(x); return `<div class="sl"><span>${nm(x.c.name)}</span>${b ? `<span class="badge">${esc(x.code)}</span>` : ''}</div>`; }).join('') : '<div class="sl none">—</div>'}</div></div>`
+    : (title, arr, badgeFn, always) => (!arr.length && !always) ? '' :
+      `<div class="card grp"><h3>${title}</h3>${arr.length ? '<ul class="list">' + arr.map(x => item(x, badgeFn(x))).join('') + '</ul>' : '<div class="none">—</div>'}</div>`;
+  const wrap = h => SHIFTS_LAYOUT === 'compact' ? `<div class="sgrid">${h}</div>` : h;
   return `<div class="nav"><button class="arrow" id="wPrev" ${ws <= 0 ? 'disabled' : ''} aria-label="Προηγούμενη εβδομάδα">‹</button><div class="title" style="font-size:17px">${title}</div><button class="arrow" id="wNext" ${we >= n - 1 ? 'disabled' : ''} aria-label="Επόμενη εβδομάδα">›</button></div>
     <div class="days7">${days}</div><div class="note" style="margin:0 0 4px"><b>${longDate(i)}</b></div>
-    ${grp('Πρωί', G.P, () => false, true)}${grp('Απόγευμα', G.A, () => false, true)}${grp('Νύχτα', G.N, () => false, true)}
-    ${grp('Αδιάθετο (Α/Α)', G.AD, () => false, true)}${grp('Ρεπό', G.R, x => norm(x.code) === 'ΧΡ', true)}${grp('Άδεια', G.L, () => true, true)}
-    ${grp('Άλλος κωδικός', G.X, () => true, false)}${grp('Χωρίς καταχώριση', G.none, () => false, false)}`;
+    ${wrap(grp('Πρωί', G.P, () => false, true) + grp('Απόγευμα', G.A, () => false, true) + grp('Νύχτα', G.N, () => false, true) +
+    grp('Αδιάθετο (Α/Α)', G.AD, () => false, true) + grp('Ρεπό', G.R, x => norm(x.code) === 'ΧΡ', true) + grp('Άδεια', G.L, () => true, true) +
+    grp('Άλλος κωδικός', G.X, () => true, false) + grp('Χωρίς καταχώριση', G.none, () => false, false))}`;
 }
 function viewNights() {
   const d = S.data, m = S.month, src = S.nyx === 'nights' ? d.nights : d.pent;
